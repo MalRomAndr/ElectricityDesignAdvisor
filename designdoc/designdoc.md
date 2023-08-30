@@ -22,8 +22,7 @@
 снизит утомляемость и сократит количество ошибок.
 
 #### 1.4. Что будем считать успехом итерации с точки зрения бизнеса
-Среднее время выбора одной детали сократится с
-<span style="font-size: 11pt; color: goldenrod; font-weight:bold">ХХ секунд до Y секунд</span>.
+Среднее время выбора одной детали сократится с <span style="font-size: 11pt; color: goldenrod; font-weight:bold">ХХ секунд до Y секунд</span>.
 Пользователь выбирает деталь из рекомендации не менее чем в
 <span style="font-size: 11pt; color: goldenrod; font-weight:bold">Х% случаев</span>.
 
