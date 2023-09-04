@@ -1,15 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using NLog;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace CatalogWindow
 {
@@ -18,6 +8,8 @@ namespace CatalogWindow
     /// </summary>
     public partial class Parts : Window
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         public Parts()
         {
             InitializeComponent();
@@ -25,11 +17,13 @@ namespace CatalogWindow
 
         private void OnButtonClickRecommend(object sender, RoutedEventArgs e)
         {
+            logger.Info("Button_Recommend clicked");
             Close();
         }
 
         private void OnButtonClickSearch(object sender, RoutedEventArgs e)
         {
+            logger.Warn("Button_Search clicked");
             Close();
         }
     }
