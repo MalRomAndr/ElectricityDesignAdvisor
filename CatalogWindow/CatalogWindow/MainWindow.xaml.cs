@@ -1,6 +1,4 @@
 ﻿using System.Windows;
-using NLog;
-
 
 namespace CatalogWindow
 {
@@ -12,10 +10,6 @@ namespace CatalogWindow
         public MainWindow()
         {
             InitializeComponent();
-
-            LogManager.Setup().LoadConfiguration(builder => {
-                builder.ForLogger().FilterMinLevel(LogLevel.Info).WriteToFile(fileName: "file.txt");
-            });
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

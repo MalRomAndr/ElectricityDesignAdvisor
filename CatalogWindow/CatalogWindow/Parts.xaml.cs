@@ -1,5 +1,4 @@
-﻿using NLog;
-using System.Windows;
+﻿using System.Windows;
 
 namespace CatalogWindow
 {
@@ -8,7 +7,7 @@ namespace CatalogWindow
     /// </summary>
     public partial class Parts : Window
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger logger = Logger.GetLogger();
 
         public Parts()
         {
