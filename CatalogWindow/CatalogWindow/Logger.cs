@@ -4,6 +4,7 @@ using NLog.Targets;
 using NLog.Targets.Gelf;
 using NLog.Targets.Wrappers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -72,6 +73,21 @@ namespace CatalogWindow
                 Layout = "${message}",
                 Name = "GelfUdp"
             };
+
+            IList<GelfParameterInfo> gelfParameterInfos =
+                new List<GelfParameterInfo>()
+                {
+                    new GelfParameterInfo()
+                    {
+                        Name = "installation_id",
+                        Layout = "{3D8EF1C1-B8C5-4343-AFEF-DDA6B7573D69}"
+                    }
+                };
+
+            foreach (GelfParameterInfo gelfParameterInfo in gelfParameterInfos)
+            {
+                gelfTarget.Parameters.Add(gelfParameterInfo);
+            }
 
             return gelfTarget;
         }
