@@ -21,14 +21,22 @@ namespace CatalogWindow
         private void OnButtonClickRecommend(object sender, RoutedEventArgs e)
         {
             stopwatch.Stop();
+#if DEBUG
+            logger.Debug(GetLogEventInfo("CA 2000", true, stopwatch.Elapsed.TotalSeconds));
+#else
             logger.Info(GetLogEventInfo("CA 2000", true, stopwatch.Elapsed.TotalSeconds));
+#endif
             Close();
         }
 
         private void OnButtonClickSearch(object sender, RoutedEventArgs e)
         {
             stopwatch.Stop();
-            logger.Info(GetLogEventInfo("SLIP22.1", false, stopwatch.Elapsed.TotalSeconds));
+#if DEBUG
+            logger.Debug(GetLogEventInfo("CA 2000", false, stopwatch.Elapsed.TotalSeconds));
+#else
+            logger.Info(GetLogEventInfo("CA 2000", false, stopwatch.Elapsed.TotalSeconds));
+#endif
             Close();
         }
 
