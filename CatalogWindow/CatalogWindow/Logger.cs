@@ -4,6 +4,7 @@ using NLog.Targets;
 using NLog.Targets.Gelf;
 using NLog.Targets.Wrappers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -36,7 +37,7 @@ namespace CatalogWindow
 
             if (collectStats)
             {
-                Target gelfTarget = GelfTarget().MakeAsyncTarget();
+                Target gelfTarget = GelfTarget().Bufferize().MakeAsync();
                 config.AddTarget(gelfTarget);
                 config.AddRuleForAllLevels(gelfTarget);
             }
@@ -67,17 +68,32 @@ namespace CatalogWindow
         {
             GelfTarget gelfTarget = new GelfTarget
             {
-                Facility = "SmartLine",                
+                Facility = "SmartLine",
                 Endpoint = "udp://185.232.169.239:12204",
                 Layout = "${message}",
                 Name = "GelfUdp"
             };
 
+            IList<GelfParameterInfo> gelfParameterInfos =
+                new List<GelfParameterInfo>()
+                {
+                    new GelfParameterInfo()
+                    {
+                        Name = "installation_id",
+                        Layout = "{3D8EF1C1-B8C5-4343-AFEF-DDA6B7573D69}"
+                    }
+                };
+
+            foreach (GelfParameterInfo gelfParameterInfo in gelfParameterInfos)
+            {
+                gelfTarget.Parameters.Add(gelfParameterInfo);
+            }
+
             return gelfTarget;
         }
 
         // Используем обётку https://github.com/nlog/NLog/wiki/AsyncWrapper-target для буферов и асинхронности
-        private static Target MakeAsyncTarget(this Target targ)
+        private static Target MakeAsync(this Target targ)
         {
             return new AsyncTargetWrapper
             {
@@ -88,6 +104,18 @@ namespace CatalogWindow
                 OverflowAction = AsyncTargetWrapperOverflowAction.Grow,
                 QueueLimit = 10000,
                 TimeToSleepBetweenBatches = 1,
+                WrappedTarget = targ
+            };
+        }
+
+        private static Target Bufferize(this Target targ)
+        {
+            return new BufferingTargetWrapper
+            {
+                Name = targ.Name,
+                OverflowAction = BufferingTargetWrapperOverflowAction.Flush,
+                FlushTimeout = -1,
+                BufferSize = 100,
                 WrappedTarget = targ
             };
         }
