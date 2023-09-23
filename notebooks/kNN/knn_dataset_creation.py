@@ -33,4 +33,4 @@ df = df.drop_duplicates().reset_index(drop=True)
 df[['HeadingId', 'CategoryId', 'StandardProjectId', 'ImageIndex']] = \
     df[['HeadingId', 'CategoryId', 'StandardProjectId', 'ImageIndex']].astype('int32')
 
-joblib.dump(df, 'df.pkl')
+joblib.dump(df, 'knn_df.pkl')

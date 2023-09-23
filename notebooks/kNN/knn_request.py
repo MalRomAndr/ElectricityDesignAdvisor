@@ -6,11 +6,11 @@ from fastapi import FastAPI, Query
 from enum import Enum
 
 
-df = joblib.load('df.pkl')
-encoder_struct = joblib.load('encoder_struct.pkl')
-encoder_type = joblib.load('encoder_type.pkl')
-scaler = joblib.load('scaler.pkl')
-model = joblib.load('model.pkl')
+df = joblib.load('knn_df.pkl')
+encoder_struct = joblib.load('knn_encoder_struct.pkl')
+encoder_type = joblib.load('knn_encoder_type.pkl')
+scaler = joblib.load('knn_scaler.pkl')
+model = joblib.load('knn_model.pkl')
 
 
 
