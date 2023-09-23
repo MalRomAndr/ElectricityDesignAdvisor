@@ -1,0 +1,14 @@
+[Unit]
+Description=Request for Electricity Design Advisor
+After=network.target
+
+[Service]
+Type=simple
+Environment=/root/miniconda3/Projects/
+WorkingDirectory=/root/miniconda3/Projects/
+ExecStart=/root/miniconda3/bin/python3 /root/miniconda3/Projects/knn_request.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=network.target
