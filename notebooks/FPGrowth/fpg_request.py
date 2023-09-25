@@ -31,7 +31,7 @@ def get_results(request):
 
         # Добавляем в таблицу с результатом метрику из ответа
         result['metric'] = list((answer['confidence']*0.55 + answer['consequent support']*0.45))
-        #result['request'] = list(answer['antecedents'])
+        result['request'] = list(answer['antecedents'])
 
         # Сортируем результат по метрике
         result = result.sort_values(by='metric', ascending=False)
@@ -49,7 +49,7 @@ def get_results(request):
         results = pd.concat([results, result], axis=0)
 
     results = results.sort_values(by='metric', ascending=False).head(25).sort_values(by='Id')
-    return results[['Id', 'Name']]
+    return results[['request', 'Id', 'Name']].rename(columns={'request': 'ID в запросе', 'Id': 'ID в рекомендации', 'Name': 'Наименование рекомендуемой детали'})
 
 
 # Определение списка значений для выпадающего списка
@@ -58,15 +58,18 @@ requests = random.sample(list(df['StructureId'].unique()), 15)
 # Создание объекта интерфейса Gradio с выпадающим списком
 iface = gr.Interface(title='Electricity Design Advisor',
                      description='Интерфейс создан для ознакомления с работой рекомендательной системы. '
-                                 'В качестве запроса можно выбрать 1 из 15 слуайно-выбранных опор ЛЭП и получить '
+                                 'В качестве запроса можно выбрать 1 из случайного списка 15 опор ЛЭП и получить '
                                  'в ответ 25 рекомендуемых деталей',
                      fn=get_results,
                      inputs=gr.Dropdown(requests,
                                         label='Опора',
                                         info='Выберите опору ЛЭП из списка'),
-                     outputs=gr.Dataframe(col_count=2,
-                                          headers=['ID детали', 'Наименование'],
-                                          label='Список рекомендуемых деталей'),
+                     outputs=gr.Dataframe(col_count=3,
+                                          max_rows=25,
+                                          headers=['ID в запросе', 'ID в рекомендации', 'Наименование рекомендуемой детали'],
+                                          show_label=True,
+                                          wrap=True,
+                                          label='Список рекомендуемых деталей к выбранной опоре'),
                      allow_flagging='never',
                      theme=gr.themes.Soft())
 
