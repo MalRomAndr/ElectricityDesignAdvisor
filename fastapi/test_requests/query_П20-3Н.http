@@ -1,0 +1,17 @@
+POST https://enstooffer.azurewebsites.net/Offer HTTP/1.1
+content-type: application/json
+
+{
+    "structure_type": "support10",
+    "structure_id": "П20-3Н",
+    "parts": [
+        "К9",
+        "РМК-20-IV-УХЛ1",
+        "СВ 70",
+        "СВ110-5",
+        "ТМ63, 27.0002-28",
+        "Х51, 27.0002-42",
+        "CD 35",
+        "IF 27"
+    ]
+}
