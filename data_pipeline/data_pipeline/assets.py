@@ -32,7 +32,7 @@ def typical_transactions():
 @asset(io_manager_key='data', deps=[typical_transactions])
 def all_transactions():
     return worker.update_dataset(path_from='data/all_transactions',
-                                 path_by='data/typical_transactions')
+                                 path_by='data/new_typical_transactions')
 
 
 @asset(io_manager_key='data')
@@ -49,4 +49,4 @@ def users_transactions_by_api():
 @asset(io_manager_key='data', deps=[users_transactions_by_api])
 def all_transactions_by_api():
     return worker.update_dataset(path_from='data/all_transactions',
-                                 path_by='data/users_transactions_by_api')
+                                 path_by='data/new_users_transactions')

@@ -55,6 +55,8 @@ def compare_overlap(old_all_overlap, new_all_overlap):
 
 @op
 def move_files(compare):
+    os.remove('data/new_typical_transactions')
+    os.remove('data/new_users_transactions')
     shutil.copy2('data/df', '../model/data/df')
     if compare:
         shutil.move('data/users_transactions_by_api', 'data/users_transactions', copy_function=shutil.copy2)
