@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import numpy as np
+import os
 import shutil
 import joblib
 import logging
@@ -85,7 +86,8 @@ def send2gray(new_all_overlap, typical, users):
     '''
     Отправить метрику в грейлог
     '''
-    if(True):
+    if(os.getenv("DEBUG") == "True"):
+        print("Logging is disabled in debug mode")
         return
     
     logging.basicConfig(level=logging.DEBUG)
