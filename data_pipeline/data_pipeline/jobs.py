@@ -1,51 +1,50 @@
 import sys
-import os
 import pandas as pd
 import numpy as np
 import shutil
 import joblib
-from dagster import op, job
 import logging
+from dagster import op, job
 from pygelf import GelfUdpHandler
-
-model_path = os.path.dirname(os.path.abspath('../model/fpgrowth.py'))
-metric_path = os.path.dirname(os.path.abspath('../model/overlap.py'))
-sys.path.append(model_path)
-sys.path.append(metric_path)
-from fpgrowth import FPGrowthRecommender
 from overlap import Overlap
 
+# Чтобы работали импорты скриптов из папки shared:
+sys.path.append("../shared/model/")
+from fpgrowth import FPGrowthRecommender
 
-model = FPGrowthRecommender()
 overlap = Overlap()
+
+def calc_overlap(dataset, transactions):
+    '''
+    Расчет метрики
+    '''
+    model = FPGrowthRecommender()
+    model.fit(dataset)
+    overlaps = []
+    for p, t in zip(transactions['Id'], transactions['TypeId']):
+        request = {'parts': p,
+                   'structure_type': t}
+        try: overlaps.append(overlap.check_overlap(request, model))
+        except: pass
+    return np.mean(overlaps)
 
 
 @op
 def all_overlap_old_rules():
-    dataset = pd.read_pickle('data/all_transactions')
-    transactions = pd.read_pickle('data/all_transactions_by_api')
-    model.fit(dataset)
-    overlaps = []
-    for p, t in zip(transactions['Id'], transactions['TypeId']):
-        request = {'parts': p,
-                   'structure_type': t}
-        try: overlaps.append(overlap.check_overlap(request, model))
-        except: pass
-    return np.mean(overlaps)
+    '''
+    Проверка новых транзакций на текущей версии модели
+    '''
+    return calc_overlap('../shared/data/all_transactions',
+                        'data_temp/all_transactions_by_api')
 
 
 @op
 def all_overlap_new_rules():
-    dataset = pd.read_pickle('data/all_transactions_by_api')
-    transactions = pd.read_pickle('data/all_transactions_by_api')
-    model.fit(dataset)
-    overlaps = []
-    for p, t in zip(transactions['Id'], transactions['TypeId']):
-        request = {'parts': p,
-                   'structure_type': t}
-        try: overlaps.append(overlap.check_overlap(request, model))
-        except: pass
-    return np.mean(overlaps)
+    '''
+    Проверка новых транзакций на новой версии модели
+    '''
+    return calc_overlap('data_temp/all_transactions_by_api',
+                        'data_temp/all_transactions_by_api')
 
 
 @op
@@ -54,45 +53,41 @@ def compare_overlap(old_all_overlap, new_all_overlap):
 
 
 @op
-def move_files(compare):
-    os.remove('data/new_typical_transactions')
-    os.remove('data/new_users_transactions')
-    shutil.copy2('data/df', '../model/data/df')
-    if compare:
-        shutil.move('data/users_transactions_by_api', 'data/users_transactions', copy_function=shutil.copy2)
-        shutil.move('data/all_transactions_by_api', 'data/all_transactions', copy_function=shutil.copy2)
+def move_files(need_to_update):
+    '''
+    Обновить файлы транзакций в общей папке
+    '''
+    if need_to_update:
+        shutil.move('data_temp/users_transactions_by_api', '../shared/data/users_transactions', copy_function=shutil.copy2)
+        shutil.move('data_temp/all_transactions_by_api', '../shared/data/all_transactions', copy_function=shutil.copy2)
 
 
 @op
 def typical_overlap(move):
-    dataset = pd.read_pickle('data/all_transactions')
-    transactions = pd.read_pickle('data/typical_transactions')
-    model.fit(dataset)
-    overlaps = []
-    for p, t in zip(transactions['Id'], transactions['TypeId']):
-        request = {'parts': p,
-                   'structure_type': t}
-        try: overlaps.append(overlap.check_overlap(request, model))
-        except: pass
-    return np.mean(overlaps)
+    '''
+    Считаем метрику на типовых корзинах
+    '''
+    return calc_overlap('../shared/data/all_transactions',
+                        '../shared/data/typical_transactions')
 
 
 @op
 def users_overlap(move):
-    dataset = pd.read_pickle('data/all_transactions')
-    transactions = pd.read_pickle('data/users_transactions')
-    model.fit(dataset)
-    overlaps = []
-    for p, t in zip(transactions['Id'], transactions['TypeId']):
-        request = {'parts': p,
-                   'structure_type': t}
-        try: overlaps.append(overlap.check_overlap(request, model))
-        except: pass
-    return np.mean(overlaps)
+    '''
+    Считаем метрику на пользовательских корзинах
+    '''
+    return calc_overlap('../shared/data/all_transactions',
+                        '../shared/data/users_transactions')
 
 
 @op
 def send2gray(new_all_overlap, typical, users):
+    '''
+    Отправить метрику в грейлог
+    '''
+    if(True):
+        return
+    
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger()
     record = logging.LogRecord(
@@ -121,17 +116,18 @@ def send2gray(new_all_overlap, typical, users):
 
 @op
 def fit_model(move):
-    dataset = pd.read_pickle('data/all_transactions')
+    dataset = pd.read_pickle('../shared/data/all_transactions')
+    model = FPGrowthRecommender()
     model.fit(dataset)
-    joblib.dump(model, '../model/data/model')
+    joblib.dump(model, '../shared/model/model')
 
 
 @job
 def overlap_checking_job():
     old_all_overlap = all_overlap_old_rules()
     new_all_overlap = all_overlap_new_rules()
-    compare = compare_overlap(old_all_overlap, new_all_overlap)
-    move = move_files(compare)
+    need_to_update = compare_overlap(old_all_overlap, new_all_overlap)
+    move = move_files(need_to_update)
     typical = typical_overlap(move)
     users = users_overlap(move)
     send2gray(new_all_overlap, typical, users)

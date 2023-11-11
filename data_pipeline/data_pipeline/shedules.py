@@ -10,7 +10,7 @@ from . import jobs
 from . import assets
 
 api_dataset_job = define_asset_job(
-    'api_dataset_job', selection=[
+    "api_dataset_job", selection=[
         assets.new_users_transactions,
         assets.users_transactions_by_api,
         assets.all_transactions_by_api

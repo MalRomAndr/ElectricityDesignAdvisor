@@ -9,7 +9,7 @@ from dagster import (
 from . import assets
 
 db_dataset_job = define_asset_job(
-    'db_dataset_job', selection=[
+    "db_dataset_job", selection=[
         assets.df,
         assets.new_typical_transactions,
         assets.typical_transactions,
@@ -24,7 +24,7 @@ db_dataset_job = define_asset_job(
     minimum_interval_seconds=86400 # раз в сутки
 )
 def check_db_changes(context):
-    file_path = os.path.join('../', 'database.db')
+    file_path = "../shared/data/database.db"
     last_mtime = float(context.cursor) if context.cursor else 0
 
     if os.path.isfile(file_path):

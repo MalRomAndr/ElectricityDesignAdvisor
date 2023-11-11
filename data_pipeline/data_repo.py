@@ -11,6 +11,9 @@ class DataRepo:
         self.data_folder = 'data/'
 
     def __check_db_composition(self, conn) -> bool:
+        '''
+        Валидация структуры БД
+        '''
         cursor = conn.cursor()
         db_composition = dict(
             Parts=['Id', 'Name'],
@@ -36,6 +39,9 @@ class DataRepo:
             return False
 
     def create_df(self, path: str) -> pd.DataFrame:
+        '''
+        Создать датафрейм
+        '''
         if os.path.isfile(path):
             conn = sqlite3.connect(path)
         else:
@@ -78,7 +84,11 @@ class DataRepo:
         df = df.drop_duplicates().reset_index(drop=True)
         return df
 
+
     def __get_dataset_by_db(self, path: str) -> pd.DataFrame:
+        '''
+        Создать датафрейм из БД
+        '''
         df: pd.DataFrame = self.create_df(path)
         transactions: pd.DataFrame = df.pivot_table(
             index=['StructureId'],
@@ -89,7 +99,11 @@ class DataRepo:
         transactions = transactions.drop_duplicates().reset_index(drop=True)
         return transactions
 
+
     def __get_dataset_by_api(self, path: str) -> pd.DataFrame:
+        '''
+        Создать датафрейм из грейлога
+        '''
         # Доступ к Graylog
         params = {
             'query': 'message:"BOM created" AND level:6',
@@ -98,9 +112,8 @@ class DataRepo:
             'size': 9999
         }
         headers = {'Accept': 'application/json'}
-        with open(os.path.join(self.data_folder, 'graytoken.txt'), 'r') as graytoken:
-            token = graytoken.read()
-            auth = (token, 'token')
+        token = os.getenv("GRAYLOG_TOKEN")
+        auth = (token, 'token')
         # Получение ответа от API
         response = requests.get(
             path,
@@ -137,14 +150,14 @@ class DataRepo:
         else:
             raise ValueError('Only one of values: ["db", "api"] available')
 
-    def update_dataset(self, path_from: str, path_by: str) -> pd.DataFrame:
-        transactions = pd.read_pickle(path_from) if os.path.isfile(path_from) else pd.DataFrame()
+    def concat_dataset(self, df1_path: str, df2_path: str) -> pd.DataFrame:
+        df1 = pd.read_pickle(df1_path) if os.path.isfile(df1_path) else pd.DataFrame()
 
-        if os.path.isfile(path_by):
-            by_transactions = pd.read_pickle(path_by)
+        if os.path.isfile(df2_path):
+            df2 = pd.read_pickle(df2_path)
         else:
-            raise FileNotFoundError(f'File "{path_by}" not found')
+            raise FileNotFoundError(f'File "{df2_path}" not found')
 
-        transactions = pd.concat([transactions, by_transactions], axis=0).drop_duplicates().reset_index(drop=True)
+        df1 = pd.concat([df1, df2], axis=0).drop_duplicates().reset_index(drop=True)
 
-        return transactions
+        return df1
