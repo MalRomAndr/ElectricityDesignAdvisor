@@ -15,10 +15,13 @@ from fpgrowth import FPGrowthRecommender
 
 overlap = Overlap()
 
-def calc_overlap(dataset, transactions) -> float:
+def calc_overlap(dataset_pickle, transactions_pickle):
     '''
     Расчет метрики
     '''
+    dataset = pd.read_pickle(dataset_pickle)
+    transactions = pd.read_pickle(transactions_pickle)
+
     model = FPGrowthRecommender()
     model.fit(dataset)
     overlaps = []
@@ -31,7 +34,7 @@ def calc_overlap(dataset, transactions) -> float:
 
 
 @op
-def all_overlap_old_rules() -> float:
+def all_overlap_old_rules():
     '''
     Проверка новых транзакций на текущей версии модели
     '''
@@ -40,7 +43,7 @@ def all_overlap_old_rules() -> float:
 
 
 @op
-def all_overlap_new_rules() -> float:
+def all_overlap_new_rules():
     '''
     Проверка новых транзакций на новой версии модели
     '''
@@ -49,12 +52,12 @@ def all_overlap_new_rules() -> float:
 
 
 @op
-def compare_score(score_total_old: float, score_total_new: float) -> bool:
+def compare_score(score_total_old, score_total_new):
     return score_total_new >= score_total_old
 
 
 @op
-def move_files(need_to_update: bool):
+def move_files(need_to_update):
     '''
     Обновить файлы транзакций в общей папке
     '''
@@ -64,7 +67,7 @@ def move_files(need_to_update: bool):
 
 
 @op
-def typical_overlap(move) -> float:
+def typical_overlap(move):
     '''
     Считаем метрику на типовых корзинах
     '''
@@ -73,7 +76,7 @@ def typical_overlap(move) -> float:
 
 
 @op
-def users_overlap(move) -> float:
+def users_overlap(move):
     '''
     Считаем метрику на пользовательских корзинах
     '''

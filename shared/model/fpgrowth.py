@@ -8,7 +8,7 @@ from mlxtend.preprocessing import TransactionEncoder
 class FPGrowthRecommender:
     def __init__(self):
         self.rules = None
-        self.data_folder = '../model/data/'
+        self.data_folder = '../shared/data' # Относительно корня дагстера
 
     def fit(self, dataset):
         te = TransactionEncoder()
