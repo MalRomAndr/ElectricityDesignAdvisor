@@ -22,7 +22,7 @@ def calc_overlap(dataset_pickle, transactions_pickle):
     dataset = pd.read_pickle(dataset_pickle)
     transactions = pd.read_pickle(transactions_pickle)
 
-    model = FPGrowthRecommender()
+    model = FPGrowthRecommender("../shared/data/df")
     model.fit(dataset)
     overlaps = []
     for p, t in zip(transactions["Id"], transactions["TypeId"]):
@@ -122,7 +122,7 @@ def send_score_to_graylog(score_total: float, score_typical_only: float, score_u
 @op
 def fit_model(move):
     dataset = pd.read_pickle("../shared/data/all_transactions")
-    model = FPGrowthRecommender()
+    model = FPGrowthRecommender("../shared/data/df")
     model.fit(dataset)
     joblib.dump(model, "../shared/model/model")
 

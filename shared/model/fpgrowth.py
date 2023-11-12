@@ -6,9 +6,12 @@ from mlxtend.preprocessing import TransactionEncoder
 
 
 class FPGrowthRecommender:
-    def __init__(self):
+    def __init__(self, df_path: str):
+        """
+        :param df_path: Путь к файлу датафрейма (pickle)
+        """
         self.rules = None
-        self.data_folder = "../shared/data" # Относительно корня дагстера
+        self.df_path = df_path
 
 
     def fit(self, dataset):
@@ -24,15 +27,17 @@ class FPGrowthRecommender:
     def predict(self, request):
         type_id = request["structure_type"]
         parts = request["parts"]
-        df_path = os.path.join(self.data_folder, "df")
-        if os.path.isfile(df_path):
-            df = pd.read_pickle(df_path)
+        
+        if os.path.isfile(self.df_path):
+            df = pd.read_pickle(self.df_path)
         else:
             raise FileNotFoundError("Dataframe from database not found")
 
         # Составляем список деталей, которые соответствуют TypeId в запросе
         ids = df[df["TypeId"] == type_id]["Id"]
+
         predictions = pd.DataFrame()
+
         for element in parts:
             # Находим все ассоциации по элементу, удаляем лишние столбцы
             answer = self.rules[self.rules["antecedents"] == element][
@@ -45,22 +50,29 @@ class FPGrowthRecommender:
             ]
             # Проверяем, чтобы предлагаемые элементы не содержались в запросе
             answer = answer[~answer["consequents"].isin(parts)]
+
             # Оставляем в списке деталей только найденные рекомендации
             ids = ids[ids.isin(answer["consequents"])]
+
             # Приводим ответ в соответствие с отфильтрованным результатом
             # (исключаем из рекомендаций не подходящие TypeId)
             answer = answer[answer["consequents"].isin(ids)]
+
             # Вычисляем метрику
             answer["metric"] = answer["consequent support"] * 0.45 + answer["confidence"] * 0.55
             answer = answer.sort_values(by="metric", ascending=False)
+
             # Удаляем из ответа повторения по id в итоговом предикте
             try:
                 answer = answer[~answer["consequents"].isin(predictions["consequents"])]
             except:
                 pass
+
             # Берем верхние строки
             answer = answer[:math.ceil(25 / len(parts))]
+
             # Добавляем ответ для одного элемента в общие результаты
             predictions = pd.concat([predictions, answer], axis=0)
+
         predictions = predictions.sort_values(by="metric", ascending=False).head(25)["consequents"].sort_values()
         return list(predictions)
