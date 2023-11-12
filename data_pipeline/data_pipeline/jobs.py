@@ -15,7 +15,7 @@ from fpgrowth import FPGrowthRecommender
 
 overlap = Overlap()
 
-def calc_overlap(dataset, transactions):
+def calc_overlap(dataset, transactions) -> float:
     '''
     Расчет метрики
     '''
@@ -31,7 +31,7 @@ def calc_overlap(dataset, transactions):
 
 
 @op
-def all_overlap_old_rules():
+def all_overlap_old_rules() -> float:
     '''
     Проверка новых транзакций на текущей версии модели
     '''
@@ -40,7 +40,7 @@ def all_overlap_old_rules():
 
 
 @op
-def all_overlap_new_rules():
+def all_overlap_new_rules() -> float:
     '''
     Проверка новых транзакций на новой версии модели
     '''
@@ -49,12 +49,12 @@ def all_overlap_new_rules():
 
 
 @op
-def compare_overlap(old_all_overlap, new_all_overlap):
-    return new_all_overlap >= old_all_overlap
+def compare_score(score_total_old: float, score_total_new: float) -> bool:
+    return score_total_new >= score_total_old
 
 
 @op
-def move_files(need_to_update):
+def move_files(need_to_update: bool):
     '''
     Обновить файлы транзакций в общей папке
     '''
@@ -64,7 +64,7 @@ def move_files(need_to_update):
 
 
 @op
-def typical_overlap(move):
+def typical_overlap(move) -> float:
     '''
     Считаем метрику на типовых корзинах
     '''
@@ -73,7 +73,7 @@ def typical_overlap(move):
 
 
 @op
-def users_overlap(move):
+def users_overlap(move) -> float:
     '''
     Считаем метрику на пользовательских корзинах
     '''
@@ -82,7 +82,7 @@ def users_overlap(move):
 
 
 @op
-def send2gray(new_all_overlap, typical, users):
+def send_score_to_graylog(score_total: float, score_typical_only: float, score_users_only: float):
     '''
     Отправить метрику в грейлог
     '''
@@ -108,9 +108,9 @@ def send2gray(new_all_overlap, typical, users):
             port=12204,
             debug=True,
             include_extra_fields=True,
-            _all_transactions=new_all_overlap,
-            _typical_transactions=typical,
-            _users_transactions=users
+            _all_transactions=score_total,
+            _typical_transactions=score_typical_only,
+            _users_transactions=score_users_only
         )
     )
     logger.handle(record)
@@ -126,11 +126,11 @@ def fit_model(move):
 
 @job
 def overlap_checking_job():
-    old_all_overlap = all_overlap_old_rules()
-    new_all_overlap = all_overlap_new_rules()
-    need_to_update = compare_overlap(old_all_overlap, new_all_overlap)
+    score_total_old = all_overlap_old_rules()
+    score_total_new = all_overlap_new_rules()
+    need_to_update = compare_score(score_total_old, score_total_new)
     move = move_files(need_to_update)
-    typical = typical_overlap(move)
-    users = users_overlap(move)
-    send2gray(new_all_overlap, typical, users)
+    score_typical_only = typical_overlap(move)
+    score_users_only = users_overlap(move)
+    send_score_to_graylog(score_total_new, score_typical_only, score_users_only)
     fit_model(move)

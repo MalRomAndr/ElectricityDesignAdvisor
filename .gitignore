@@ -164,6 +164,7 @@ cython_debug/
 # Dagster project
 #-------------------
 data_temp/
+data_pipeline/tmp*/
 
 
 #-------------------
