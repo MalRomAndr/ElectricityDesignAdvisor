@@ -10,6 +10,7 @@ class FPGrowthRecommender:
         self.rules = None
         self.data_folder = '../shared/data' # Относительно корня дагстера
 
+
     def fit(self, dataset):
         te = TransactionEncoder()
         encoded = pd.DataFrame(te.fit(dataset['Id']).transform(dataset['Id']), columns=te.columns_)
@@ -18,6 +19,7 @@ class FPGrowthRecommender:
         rules['antecedents'] = rules['antecedents'].apply(lambda x: list(x)[0])
         rules['consequents'] = rules['consequents'].apply(lambda x: list(x)[0])
         self.rules = rules
+
 
     def predict(self, request):
         type_id = request['structure_type']

@@ -16,9 +16,9 @@ from fpgrowth import FPGrowthRecommender
 overlap = Overlap()
 
 def calc_overlap(dataset_pickle, transactions_pickle):
-    '''
+    """
     Расчет метрики
-    '''
+    """
     dataset = pd.read_pickle(dataset_pickle)
     transactions = pd.read_pickle(transactions_pickle)
 
@@ -35,18 +35,18 @@ def calc_overlap(dataset_pickle, transactions_pickle):
 
 @op
 def all_overlap_old_rules():
-    '''
+    """
     Проверка новых транзакций на текущей версии модели
-    '''
+    """
     return calc_overlap('../shared/data/all_transactions',
                         'data_temp/all_transactions_by_api')
 
 
 @op
 def all_overlap_new_rules():
-    '''
+    """
     Проверка новых транзакций на новой версии модели
-    '''
+    """
     return calc_overlap('data_temp/all_transactions_by_api',
                         'data_temp/all_transactions_by_api')
 
@@ -58,9 +58,9 @@ def compare_score(score_total_old, score_total_new):
 
 @op
 def move_files(need_to_update):
-    '''
+    """
     Обновить файлы транзакций в общей папке
-    '''
+    """
     if need_to_update:
         shutil.move('data_temp/users_transactions_by_api', '../shared/data/users_transactions', copy_function=shutil.copy2)
         shutil.move('data_temp/all_transactions_by_api', '../shared/data/all_transactions', copy_function=shutil.copy2)
@@ -68,27 +68,27 @@ def move_files(need_to_update):
 
 @op
 def typical_overlap(move):
-    '''
+    """
     Считаем метрику на типовых корзинах
-    '''
+    """
     return calc_overlap('../shared/data/all_transactions',
                         '../shared/data/typical_transactions')
 
 
 @op
 def users_overlap(move):
-    '''
+    """
     Считаем метрику на пользовательских корзинах
-    '''
+    """
     return calc_overlap('../shared/data/all_transactions',
                         '../shared/data/users_transactions')
 
 
 @op
 def send_score_to_graylog(score_total: float, score_typical_only: float, score_users_only: float):
-    '''
+    """
     Отправить метрику в грейлог
-    '''
+    """
     if(os.getenv("DEBUG") == "True"):
         print("Logging is disabled in debug mode")
         return
