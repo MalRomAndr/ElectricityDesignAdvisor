@@ -10,13 +10,13 @@ class Overlap:
     def check_overlap(self, request, model):
         kf = KFold(n_splits=3, shuffle=True, random_state=42)
         overlap = []
-        parts = np.array(request['parts'])
-        type_id = request['structure_type']
+        parts = np.array(request["parts"])
+        type_id = request["structure_type"]
         for check_index, req_index in kf.split(parts):
             # Передаем в запрос 1 фолд
             request_part = {
-                'parts': list(parts[req_index]),
-                'structure_type': type_id
+                "parts": list(parts[req_index]),
+                "structure_type": type_id
             }
             # Элементы, которых нет в запросе - ожидаемый ответ
             actual = parts[check_index]

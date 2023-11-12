@@ -15,7 +15,7 @@ def df():
 
 @asset(io_manager_key="data_temp", deps=[df])
 def new_typical_transactions():
-    return repo.get_dataset(by='db', path=db_path)
+    return repo.get_dataset(by="db", path=db_path)
 
 
 @asset(io_manager_key="data", deps=[new_typical_transactions])
@@ -32,7 +32,7 @@ def all_transactions():
 
 @asset(io_manager_key="data_temp")
 def new_users_transactions():
-    return repo.get_dataset(by='api', path=url)
+    return repo.get_dataset(by="api", path=url)
 
 
 @asset(io_manager_key="data_temp", deps=[new_users_transactions])
