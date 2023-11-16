@@ -85,7 +85,7 @@ class DataRepo:
         return df
 
 
-    def __get_dataset_by_db(self, path: str) -> pd.DataFrame:
+    def __create_dataset_from_db(self, path: str) -> pd.DataFrame:
         """
         Создать датафрейм из БД
         """
@@ -100,7 +100,7 @@ class DataRepo:
         return transactions
 
 
-    def __get_dataset_by_api(self, path: str) -> pd.DataFrame:
+    def __create_dataset_via_api(self, path: str) -> pd.DataFrame:
         """
         Создать датафрейм из грейлога
         """
@@ -142,11 +142,11 @@ class DataRepo:
         transactions = transactions.drop_duplicates().reset_index(drop=True)
         return transactions
 
-    def get_dataset(self, by: str, path: str) -> pd.DataFrame:
-        if by == "db":
-            return self.__get_dataset_by_db(path)
-        elif by == "api":
-            return self.__get_dataset_by_api(path)
+    def create_dataset(self, source: str, path: str) -> pd.DataFrame:
+        if source == "db":
+            return self.__create_dataset_from_db(path)
+        elif source == "api":
+            return self.__create_dataset_via_api(path)
         else:
             raise ValueError("Only one of values: ['db', 'api'] available")
 
