@@ -11,7 +11,6 @@ from . import assets
 db_dataset_job = define_asset_job(
     "db_dataset_job", selection=[
         assets.df,
-        assets.new_typical_transactions,
         assets.typical_transactions,
         assets.all_transactions
     ]

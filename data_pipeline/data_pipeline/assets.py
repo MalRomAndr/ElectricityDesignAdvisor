@@ -13,21 +13,15 @@ def df():
     return repo.create_df(db_path)
 
 
-@asset(io_manager_key="data_temp", deps=[df])
-def new_typical_transactions():
-    return repo.create_dataset(source="db", path=db_path)
-
-
-@asset(io_manager_key="data", deps=[new_typical_transactions])
+@asset(io_manager_key="data", deps=[df])
 def typical_transactions():
-    return repo.concat_dataset(df1_path="../shared/data/typical_transactions",
-                                 df2_path="data_temp/new_typical_transactions")
+    return repo.create_dataset(source="db", path=db_path)
 
 
 @asset(io_manager_key="data", deps=[typical_transactions])
 def all_transactions():
     return repo.concat_dataset(df1_path="../shared/data/all_transactions",
-                                 df2_path="data_temp/new_typical_transactions")
+                                 df2_path="data_temp/typical_transactions")
 
 
 @asset(io_manager_key="data_temp")
