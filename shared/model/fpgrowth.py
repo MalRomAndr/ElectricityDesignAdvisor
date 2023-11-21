@@ -1,20 +1,38 @@
-import pandas as pd
-import os
+"""Модуль для подсчета ассоциативных правил для программы SmartLine"""
 import math
+import os
+import pandas as pd
 from mlxtend.frequent_patterns import fpgrowth, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
 
 class FPGrowthRecommender:
+    """Класс для подсчета ассоциативных правил, алгоритм fpgrowth"""
     def __init__(self, df_path: str):
-        """
-        :param df_path: Путь к файлу датафрейма (pickle)
+        """:param df_path: Путь к файлу датафрейма (pickle)
+        
+        Вид DataFrame:
+        | Id         | TypeId    |
+        | ---------- | --------- |
+        | d10 (цинк) | support10 |
+        | COT37R     | commCable |
+
+        DataFrame нужен для фильтрации правил по типу опоры и удаления неизвестных деталей.
         """
         self.rules = None
         self.df_path = df_path
 
 
     def fit(self, dataset):
+        """Подсчитать associations rules
+
+        :param dataset: Таблица транзакций.
+
+        | StructureId | Id                   |
+        | ----------- | -------------------- |
+        | П20-3Н      | (N 640, P 616, P 72) |
+        | ППоБ10-3Н   | ("d10", "COT37R")    |
+        """
         te = TransactionEncoder()
         encoded = pd.DataFrame(te.fit(dataset["Id"]).transform(dataset["Id"]), columns=te.columns_)
         frequent_itemsets = fpgrowth(encoded, min_support=0.0001, use_colnames=True, max_len=2)
@@ -25,9 +43,31 @@ class FPGrowthRecommender:
 
 
     def predict(self, request):
+        """Найти в правилах подходящие детали
+
+        :param request: Запрос json.
+
+        Пример запроса:
+
+        {
+            "structure_type": "support",
+            "parts": [
+                "ЗП6",
+                "П-3и",
+                "СВ95-3",
+                "У4",
+                "COT36.2"
+            ],
+            "structure_name" (не используется): "А11"
+        }
+
+        Возвращает:
+
+        Список Id рекомендованных деталей
+        """
         type_id = request["structure_type"]
         parts = request["parts"]
-        
+
         if os.path.isfile(self.df_path):
             df = pd.read_pickle(self.df_path)
         else:
@@ -55,7 +95,7 @@ class FPGrowthRecommender:
             ids = ids[ids.isin(answer["consequents"])]
 
             # Приводим ответ в соответствие с отфильтрованным результатом
-            # (исключаем из рекомендаций не подходящие TypeId)
+            # (исключаем из рекомендаций не подходящие TypeId и неизвестные детали)
             answer = answer[answer["consequents"].isin(ids)]
 
             # Вычисляем метрику
@@ -74,5 +114,7 @@ class FPGrowthRecommender:
             # Добавляем ответ для одного элемента в общие результаты
             predictions = pd.concat([predictions, answer], axis=0)
 
-        predictions = predictions.sort_values(by="metric", ascending=False).head(25)["consequents"].sort_values()
+        predictions = predictions.sort_values(by="metric", ascending=False) \
+                                    .head(25)["consequents"] \
+                                    .sort_values()
         return list(predictions)
