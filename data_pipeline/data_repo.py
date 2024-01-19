@@ -52,7 +52,7 @@ class DataRepo:
             raise ValueError("Database file have a wrong composition")
 
         # Подгружаем таблицы из sql
-        data_parts = pd.read_sql("SELECT Id, Name FROM Parts;", con=conn)
+        data_parts = pd.read_sql("SELECT Id, Name, SupplierId FROM Parts;", con=conn)
         data_structures_parts = pd.read_sql("SELECT StructureId, PartId FROM StructuresParts;", con=conn)
         data_structures = pd.read_sql("SELECT Id, TypeId FROM Structures;", con=conn)
         data_conductors = pd.read_sql("SELECT PartId, TypeId FROM Conductors;", con=conn)
@@ -65,20 +65,24 @@ class DataRepo:
             right_on="PartId",
             how="outer"
         ).drop("PartId", axis=1)
+
         data_structures.rename(columns={"Id": "Id_str"}, inplace=True)
+
         df = df.merge(
             data_structures,
             left_on="StructureId",
             right_on="Id_str"
         ).drop(labels="Id_str", axis=1)
+
         data_conductors.rename(columns={"PartId": "Id"}, inplace=True)
+
         df = pd.concat([df, data_conductors], axis=0)
 
         # Отсекаем лишнее в наименованиях опор
         df["StructureId"] = df["StructureId"].str.split("_").str[0]
 
         # Заполняем пропуски в данных
-        df[["Name", "StructureId"]] = df[["Name", "StructureId"]].fillna("")
+        df[["Name", "StructureId", "SupplierId"]] = df[["Name", "StructureId", "SupplierId"]].fillna("")
 
         # Удаляем строки дубликаты
         df = df.drop_duplicates().reset_index(drop=True)

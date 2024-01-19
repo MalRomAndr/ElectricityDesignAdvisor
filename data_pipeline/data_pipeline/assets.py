@@ -10,7 +10,8 @@ URL = "http://dev.lep10.ru:9000/api/search/messages"
 
 @asset(io_manager_key="data")
 def df():
-    """Датафрейм |Id|TypeId|
+    """
+    Датафрейм вида | Id | TypeId | SupplierId |
 
     для фильтрации правил по типу опоры и удаления неизвестных деталей
     """
