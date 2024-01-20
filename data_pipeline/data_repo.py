@@ -111,7 +111,7 @@ class DataRepo:
         # Доступ к Graylog
         params = {
             "query": "message:'BOM created' AND level:6",
-            "timerange": "1M",
+            "timerange": "4M",
             "fields": "bom",
             "size": 9999
         }

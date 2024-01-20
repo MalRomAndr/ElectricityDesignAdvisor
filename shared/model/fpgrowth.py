@@ -13,7 +13,10 @@ class FPGrowthRecommender:
     Класс для подсчета ассоциативных правил, алгоритм fpgrowth
     """
     def __init__(self, df_path: str):
-        """:param df_path: Путь к файлу датафрейма (pickle)
+        """
+        Parameters
+        ----------
+        df_path: Путь к файлу датафрейма (pickle)
         
         Вид DataFrame:
         | Id         | TypeId    |
@@ -25,17 +28,22 @@ class FPGrowthRecommender:
         """
         self.rules = None
 
+        # Инициализируем вспомогательный датафрейм
         if os.path.isfile(df_path):
             self.df = pd.read_pickle(df_path)
         else:
             raise FileNotFoundError("Dataframe from database not found")
 
+        # Id производителей-конкурентов
+        self.competitors = ["EKF", "Niled", "Энсто", "ООО «МЗВА-ЧЭМЗ»", "IEK", "SICAME"]
 
     def fit(self, dataset):
         """
         Подсчитать associations rules
 
-        :param dataset: Таблица транзакций.
+        Parameters
+        ----------
+        dataset: Таблица транзакций
 
         | StructureId | Id                   |
         | ----------- | -------------------- |
@@ -43,18 +51,24 @@ class FPGrowthRecommender:
         | ППоБ10-3Н   | ("d10", "COT37R")    |
         """
         te = TransactionEncoder()
-        encoded = pd.DataFrame(te.fit(dataset["Id"]).transform(dataset["Id"]), columns=te.columns_)
+        encoded = pd.DataFrame(te.fit(dataset.Id).transform(dataset.Id), columns=te.columns_)
         frequent_itemsets = fpgrowth(encoded, min_support=0.0001, use_colnames=True, max_len=2)
         rules = association_rules(frequent_itemsets, metric="support", min_threshold=0)
+
+        # Конвертируем frozenset в строку:
         rules["antecedents"] = rules["antecedents"].apply(lambda x: list(x)[0])
         rules["consequents"] = rules["consequents"].apply(lambda x: list(x)[0])
+
         self.rules = rules
 
 
     def predict(self, request):
-        """Найти в правилах подходящие детали
+        """
+        Найти в правилах подходящие детали
 
-        :param request: Запрос json.
+        Parameters
+        ----------
+        request: Запрос json
 
         Пример запроса:
 
@@ -65,20 +79,34 @@ class FPGrowthRecommender:
                 "П-3и",
                 "СВ95-3",
                 "У4",
-                "COT36.2"
+                "COT36.2R"
             ],
             "structure_name" (не используется): "А11"
         }
 
-        Возвращает:
-
+        Returns
+        -----------
         Список Id рекомендованных деталей
         """
         type_id = request["structure_type"]
         parts = request["parts"]
 
-        # Составляем список деталей, которые соответствуют TypeId в запросе
-        ids = self.df[self.df["TypeId"] == type_id]["Id"]
+        # Список производителей в запросе:
+        suppliers_from_request = self.df[self.df.Id.isin(parts)].SupplierId.unique()
+
+        # Если из списка конкурентов удалить тех, чья продукция есть в запросе,
+        # то из оставшихся получится в черный список - их продукцию надо скрыть.
+        suppliers_black_list = [i for i in self.competitors if i not in suppliers_from_request]
+
+        # Если в запосе нет ни одного из конкурентов, то разрешаем всех:
+        if len(suppliers_black_list) == len(self.competitors):
+            suppliers_black_list = []
+
+        # Составляем список Id деталей, которые соответствуют по TypeId и производителю:
+        ids = self.df.loc[
+            (self.df.TypeId == type_id) &
+            ~self.df.SupplierId.isin(suppliers_black_list)
+            ].Id.unique()
 
         predictions = pd.DataFrame()
 
@@ -94,9 +122,6 @@ class FPGrowthRecommender:
             ]
             # Проверяем, чтобы предлагаемые элементы не содержались в запросе
             answer = answer[~answer["consequents"].isin(parts)]
-
-            # Оставляем в списке деталей только найденные рекомендации
-            ids = ids[ids.isin(answer["consequents"])]
 
             # Приводим ответ в соответствие с отфильтрованным результатом
             # (исключаем из рекомендаций не подходящие TypeId и неизвестные детали)
