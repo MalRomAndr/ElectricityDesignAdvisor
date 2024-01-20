@@ -1,4 +1,6 @@
-"""Модуль для подсчета ассоциативных правил для программы SmartLine"""
+"""
+Модуль для подсчета ассоциативных правил для программы SmartLine
+"""
 import math
 import os
 import pandas as pd
@@ -7,7 +9,9 @@ from mlxtend.preprocessing import TransactionEncoder
 
 
 class FPGrowthRecommender:
-    """Класс для подсчета ассоциативных правил, алгоритм fpgrowth"""
+    """
+    Класс для подсчета ассоциативных правил, алгоритм fpgrowth
+    """
     def __init__(self, df_path: str):
         """:param df_path: Путь к файлу датафрейма (pickle)
         
@@ -20,11 +24,16 @@ class FPGrowthRecommender:
         DataFrame нужен для фильтрации правил по типу опоры и удаления неизвестных деталей.
         """
         self.rules = None
-        self.df_path = df_path
+
+        if os.path.isfile(df_path):
+            self.df = pd.read_pickle(df_path)
+        else:
+            raise FileNotFoundError("Dataframe from database not found")
 
 
     def fit(self, dataset):
-        """Подсчитать associations rules
+        """
+        Подсчитать associations rules
 
         :param dataset: Таблица транзакций.
 
@@ -68,19 +77,14 @@ class FPGrowthRecommender:
         type_id = request["structure_type"]
         parts = request["parts"]
 
-        if os.path.isfile(self.df_path):
-            df = pd.read_pickle(self.df_path)
-        else:
-            raise FileNotFoundError("Dataframe from database not found")
-
         # Составляем список деталей, которые соответствуют TypeId в запросе
-        ids = df[df["TypeId"] == type_id]["Id"]
+        ids = self.df[self.df["TypeId"] == type_id]["Id"]
 
         predictions = pd.DataFrame()
 
-        for element in parts:
+        for part_id in parts:
             # Находим все ассоциации по элементу, удаляем лишние столбцы
-            answer = self.rules[self.rules["antecedents"] == element][
+            answer = self.rules[self.rules["antecedents"] == part_id][
                 [
                     "antecedents",
                     "consequents",
