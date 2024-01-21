@@ -14,8 +14,5 @@ defs = Definitions(
     assets=all_assets,
     jobs=[jobs.overlap_checking_job],
     sensors=[sensors.check_db_changes],
-    resources={
-        "data": FilesystemIOManager(base_dir="../shared/data"),
-        "data_temp": FilesystemIOManager(base_dir="data_temp/")
-        }
+    resources={"data": FilesystemIOManager(base_dir="../shared/data")},
 )

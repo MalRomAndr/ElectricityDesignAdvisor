@@ -8,10 +8,16 @@ class Overlap:
         self.model = None
 
     def check_overlap(self, request, model):
-        kf = KFold(n_splits=3, shuffle=True, random_state=42)
+        n_splits = 3
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
         overlap = []
         parts = np.array(request["parts"])
         type_id = request["structure_type"]
+
+        # Проверка кодичества деталей:
+        if len(parts) < n_splits:
+            return None
+
         for check_index, req_index in kf.split(parts):
             # Передаем в запрос 1 фолд
             request_part = {
