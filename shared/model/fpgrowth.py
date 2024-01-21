@@ -102,6 +102,7 @@ class FPGrowthRecommender:
             ].Id.unique()
 
         predictions = pd.DataFrame()
+        n_max = 20  # Максимальное количество рекомендаций
 
         for part_id in parts:
             # Находим все ассоциации по элементу, удаляем лишние столбцы
@@ -131,12 +132,12 @@ class FPGrowthRecommender:
                 pass
 
             # Берем верхние строки
-            answer = answer[:math.ceil(25 / len(parts))]
+            answer = answer[:math.ceil(n_max / len(parts))]
 
             # Добавляем ответ для одного элемента в общие результаты
             predictions = pd.concat([predictions, answer], axis=0)
 
         predictions = predictions.sort_values(by="metric", ascending=False) \
-                                    .head(25)["consequents"] \
+                                    .head(n_max)["consequents"] \
                                     .sort_values()
         return list(predictions)
