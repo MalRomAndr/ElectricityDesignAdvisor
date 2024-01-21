@@ -2,7 +2,6 @@
 Модуль для подсчета ассоциативных правил для программы SmartLine
 """
 import math
-import os
 import pandas as pd
 from mlxtend.frequent_patterns import fpgrowth, association_rules
 from mlxtend.preprocessing import TransactionEncoder
@@ -12,27 +11,21 @@ class FPGrowthRecommender:
     """
     Класс для подсчета ассоциативных правил, алгоритм fpgrowth
     """
-    def __init__(self, df_path: str):
+    def __init__(self, df: str):
         """
         Parameters
         ----------
-        df_path: Путь к файлу датафрейма (pickle)
-        
-        Вид DataFrame:
-        | Id         | TypeId    |
-        | ---------- | --------- |
-        | d10 (цинк) | support10 |
-        | COT37R     | commCable |
+        df: DataFrame
+            Вспомогательный датафрейм для фильтрации правил по типу опоры
+            и удаления ненужных деталей
 
-        DataFrame нужен для фильтрации правил по типу опоры и удаления неизвестных деталей.
+        Вид DataFrame:  | Id | Name | SupplierId | StructureId | TypeId |
         """
         self.rules = None
+        self.df = df
 
-        # Инициализируем вспомогательный датафрейм
-        if os.path.isfile(df_path):
-            self.df = pd.read_pickle(df_path)
-        else:
-            raise FileNotFoundError("Dataframe from database not found")
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError
 
         # Id производителей-конкурентов
         self.competitors = ["EKF", "Niled", "Энсто", "ООО «МЗВА-ЧЭМЗ»", "IEK", "SICAME"]
@@ -134,7 +127,7 @@ class FPGrowthRecommender:
             # Удаляем из ответа повторения по id в итоговом предикте
             try:
                 answer = answer[~answer["consequents"].isin(predictions["consequents"])]
-            except:
+            except KeyError:
                 pass
 
             # Берем верхние строки

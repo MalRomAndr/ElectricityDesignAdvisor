@@ -105,7 +105,7 @@ def model(df, full_transactions):
     """
     Обученная модель
     """
-    my_model = FPGrowthRecommender("../shared/data/df")
+    my_model = FPGrowthRecommender(df)
     my_model.fit(full_transactions)
     return my_model
 
