@@ -27,7 +27,7 @@ def check_db_changes(context):
     """
     Событие - обновился файд БД
     """
-    file_path = "../shared/data/database.db"
+    file_path = "../shared/maindatabase.db"
     last_mtime = float(context.cursor) if context.cursor else 0
 
     if os.path.isfile(file_path):

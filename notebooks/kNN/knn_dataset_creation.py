@@ -4,7 +4,7 @@ import sqlite3
 
 
 # Импорт данных из базы данных
-conn = sqlite3.connect('../../FastAPI/database.db')
+conn = sqlite3.connect('../../shared/maindatabase.db')
 data_Parts = pd.read_sql("select Id, Name, HeadingId, CategoryId from Parts;", con=conn)
 data_StructuresParts = pd.read_sql("select StructureId, PartId from StructuresParts;", con=conn)
 data_Structures = pd.read_sql("select Id, StandardProjectId, TypeId from Structures;", con=conn)

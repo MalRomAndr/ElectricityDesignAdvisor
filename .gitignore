@@ -163,7 +163,7 @@ cython_debug/
 #-------------------
 # Dagster project
 #-------------------
-shared/
+shared/data/
 data_pipeline/tmp*/
 
 

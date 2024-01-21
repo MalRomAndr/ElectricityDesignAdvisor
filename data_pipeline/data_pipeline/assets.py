@@ -15,7 +15,7 @@ from fpgrowth import FPGrowthRecommender
 
 repo = DataRepo()
 
-db_path = os.path.abspath("../shared/data/database.db")
+db_path = os.path.abspath("../shared/maindatabase.db")
 URL = "http://dev.lep10.ru:9000/api/search/messages"
 
 

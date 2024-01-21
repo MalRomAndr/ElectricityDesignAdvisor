@@ -5,7 +5,7 @@ import pickle
 
 
 
-conn = sqlite3.connect('../database.db')
+conn = sqlite3.connect('../maindatabase.db')
 
 # Подгружаем таблицы из sql
 data_Parts = pd.read_sql("select Id, Name from Parts;", con=conn)
