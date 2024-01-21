@@ -82,14 +82,15 @@ class DataRepo:
         df["StructureId"] = df["StructureId"].str.split("_").str[0]
 
         # Заполняем пропуски в данных
-        df[["Name", "StructureId", "SupplierId"]] = df[["Name", "StructureId", "SupplierId"]].fillna("")
+        df[["Name", "StructureId", "SupplierId"]] = \
+            df[["Name", "StructureId", "SupplierId"]].fillna("")
 
         # Удаляем строки дубликаты
         df = df.drop_duplicates().reset_index(drop=True)
         return df
 
 
-    def __create_dataset_from_db(self, path: str) -> pd.DataFrame:
+    def create_dataset_from_db(self, path: str) -> pd.DataFrame:
         """
         Создать датафрейм из БД
         """
@@ -104,7 +105,7 @@ class DataRepo:
         return transactions
 
 
-    def __create_dataset_via_api(self, path: str) -> pd.DataFrame:
+    def create_dataset_via_api(self, path: str) -> pd.DataFrame:
         """
         Создать датафрейм из грейлога
         """
@@ -123,7 +124,8 @@ class DataRepo:
             path,
             headers=headers,
             auth=auth,
-            params=params
+            params=params,
+            timeout=10
         ).json()
         # Преобразование в список транзакций
         transactions: pd.DataFrame = pd.DataFrame(columns=["StructureId", "Id", "TypeId"])
@@ -145,23 +147,3 @@ class DataRepo:
         transactions["Id"] = transactions["Id"].apply(lambda x: tuple(x))
         transactions = transactions.drop_duplicates().reset_index(drop=True)
         return transactions
-
-    def create_dataset(self, source: str, path: str) -> pd.DataFrame:
-        if source == "db":
-            return self.__create_dataset_from_db(path)
-        elif source == "api":
-            return self.__create_dataset_via_api(path)
-        else:
-            raise ValueError("Only one of values: ['db', 'api'] available")
-
-    def concat_dataset(self, df1_path: str, df2_path: str) -> pd.DataFrame:
-        df1 = pd.read_pickle(df1_path) if os.path.isfile(df1_path) else pd.DataFrame()
-
-        if os.path.isfile(df2_path):
-            df2 = pd.read_pickle(df2_path)
-        else:
-            raise FileNotFoundError(f"File '{df2_path}' not found")
-
-        df1 = pd.concat([df1, df2], axis=0).drop_duplicates().reset_index(drop=True)
-
-        return df1

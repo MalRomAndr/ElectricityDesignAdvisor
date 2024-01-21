@@ -58,7 +58,7 @@ def typical_transactions(context):
     """
     Таблица транзакций из БД
     """
-    df1 = repo.create_dataset(source="db", path=db_path)
+    df1 = repo.create_dataset_from_db(db_path)
 
     # Визуализация в интерфейсе дагстера:
     context.add_output_metadata({
@@ -73,7 +73,7 @@ def user_transactions(context):
     """
     Транзакции из GrayLog за последний период
     """
-    df1 = repo.create_dataset(source="api", path=URL)
+    df1 = repo.create_dataset_via_api(URL)
 
     # Визуализация в интерфейсе дагстера:
     context.add_output_metadata({
